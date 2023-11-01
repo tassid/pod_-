@@ -94,6 +94,143 @@ quicksort_lomuto(int *arr, int low, int high) {
   }
 }
 
+// Função para encontrar o valor máximo em um array
+int findMax(int arr[], int n) {
+    int max = arr[0];
+    for (int i = 1; i < n; i++) {
+        if (arr[i] > max) {
+            max = arr[i];
+        }
+    }
+    return max;
+}
+
+
+// Função de ordenação Counting Sort (auxiliar para o Radix Sort)
+void countingSort(int arr[], int n, int exp) {
+    int output[n];
+    int count[10] = {0};
+
+    for (int i = 0; i < n; i++) {
+        count[(arr[i] / exp) % 10]++;
+    }
+
+    for (int i = 1; i < 10; i++) {
+        count[i] += count[i - 1];
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+        count[(arr[i] / exp) % 10]--;
+    }
+
+    for (int i = 0; i < n; i++) {
+        arr[i] = output[i];
+    }
+}
+
+// Função de ordenação Radix Sort
+void radixSort(int arr[], int n) {
+    int max = findMax(arr, n);
+    for (int exp = 1; max / exp > 0; exp *= 10) {
+        countingSort(arr, n, exp);
+    }
+}
+
+void insertionSort(int arr[], int n) {
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void merge(int arr[], int l, int m, int r) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
+
+    int L[n1], R[n2];
+
+    for (int i = 0; i < n1; i++) {
+        L[i] = arr[l + i];
+    }
+    for (int i = 0; i < n2; i++) {
+        R[i] = arr[m + 1 + i];
+    }
+
+    int i = 0, j = 0, k = l;
+
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(int arr[], int l, int r) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+
+void heapify(int arr[], int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
+
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+        heapify(arr, n, largest);
+    }
+}
+
+void heapSort(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(arr, n, i);
+    }
+    for (int i = n - 1; i > 0; i--) {
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+        heapify(arr, i, 0);
+    }
+}
+
+
 
 void generate_file(const char *filename, int *arr, int size) {
     FILE *file = fopen(filename, "w");
@@ -192,6 +329,10 @@ int main() {
             printf("2 - Selection Sort\n");
             printf("3 - Quick Sort (Hoare)\n");
             printf("4 - Quick Sort (Lomuto)\n");
+            printf("5 - Radix Sort\n");
+            printf("6 - Insertion Sort\n");
+            printf("7 - Merge Sort\n");
+            printf("8 - Heap Sort\n");
             int sorting_algorithm;
             printf("Opção: ");
             scanf("%d", &sorting_algorithm);
@@ -211,6 +352,18 @@ int main() {
             } else if (sorting_algorithm == 4) {
                 quicksort_lomuto(arr, 0, tamanho - 1);
                 printf("Arquivo ordenado com sucesso usando Quick Sort (Lomuto).\n");
+            } else if (sorting_algorithm == 5) {
+                radixSort(arr, tamanho);
+                printf("Arquivo ordenado com sucesso usando Radix Sort.\n");
+            } else if (sorting_algorithm == 6) {
+                insertionSort(arr, tamanho);
+                printf("Arquivo ordenado com sucesso usando Insertion Sort.\n");
+            } else if (sorting_algorithm == 7) {
+                mergeSort(arr, 0, tamanho - 1);
+                printf("Arquivo ordenado com sucesso usando Merge Sort.\n");
+            } else if (sorting_algorithm == 8) {
+                heapSort(arr, tamanho);
+                printf("Arquivo ordenado com sucesso usando Heap Sort.\n");
             } else {
                 printf("Opção de algoritmo de ordenação inválida.\n");
             }
@@ -220,11 +373,14 @@ int main() {
             double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
             printf("Tempo decorrido: %.4f segundos\n", elapsed_time);
 
+
             generate_file("sorted.txt", arr, tamanho);
             printf("Arquivo 'sorted.txt' gerado como arquivo ordenado.\n");
 
             free(arr);
-        } else if (opcao == 5) {
+        }
+
+        else if (opcao == 5) {
             printf("Saindo do programa.\n");
             break;
         } else {
